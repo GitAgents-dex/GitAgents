@@ -1,0 +1,2740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Agents — Deploy Autonomous AI Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #080C12;
+    --bg2:      #0F1520;
+    --bg3:      #19202E;
+    --border:   #1E2A3A;
+    --border2:  #263344;
+    --violet:   #6D28D9;
+    --violet2:  #8B5CF6;
+    --violet3:  #A78BFA;
+    --mint:     #10B981;
+    --mint2:    #34D399;
+    --slate:    #6B7FA8;
+    --white:    #EEF4FF;
+    --dimwhite: #B8C5DC;
+    --red:      #F43F5E;
+    --yellow:   #F59E0B;
+    --cyan:     #06B6D4;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--dimwhite);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--violet2); }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem;
+    height: 64px;
+    background: rgba(8,12,18,0.8);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(30,42,58,0.8);
+    transition: background .3s;
+  }
+
+  nav::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,.4), rgba(16,185,129,.3), transparent);
+  }
+
+  /* ── LOGO ── */
+  .nav-logo {
+    display: flex; align-items: center; gap: .65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem; font-weight: 600;
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Animated Git-style hexagon logo */
+  .logo-icon svg {
+    width: 32px; height: 32px;
+    filter: drop-shadow(0 0 8px rgba(139,92,246,.6));
+    transition: filter .3s;
+  }
+  .nav-logo:hover .logo-icon svg {
+    filter: drop-shadow(0 0 14px rgba(139,92,246,.9));
+  }
+
+  .logo-ring {
+    animation: logoRotate 8s linear infinite;
+    transform-origin: 12px 12px;
+  }
+
+  @keyframes logoRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .logo-text { letter-spacing: -.01em; }
+  .logo-bracket { color: var(--violet3); font-weight: 400; }
+  .logo-dash { color: var(--mint); }
+  .logo-name { color: var(--white); }
+
+  .nav-links {
+    display: flex; align-items: center; gap: 1.8rem;
+    list-style: none;
+    font-size: .88rem; font-weight: 500;
+  }
+
+  .nav-links a {
+    color: var(--slate); transition: color .2s;
+    position: relative; padding-bottom: 2px;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 1px;
+    background: var(--violet3); transform: scaleX(0); transition: transform .2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  .nav-cta { display: flex; align-items: center; gap: .8rem; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: .45rem;
+    padding: .45rem 1.15rem;
+    border-radius: 7px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .85rem; font-weight: 600;
+    cursor: pointer; border: none; transition: all .2s;
+    position: relative; overflow: hidden;
+    -webkit-tap-highlight-color: rgba(139,92,246,.25);
+    user-select: none;
+    min-height: 44px;
+  }
+
+  .btn-outline {
+    background: rgba(30,42,58,.6);
+    border: 1px solid var(--border2);
+    color: var(--dimwhite);
+  }
+  .btn-outline:hover { border-color: var(--violet2); color: var(--white); background: rgba(109,40,217,.1); }
+  .btn-outline:active { background: rgba(109,40,217,.2); transform: scale(.97); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--violet) 0%, #5B21B6 100%);
+    color: #fff;
+    box-shadow: 0 0 20px rgba(109,40,217,.35), inset 0 1px 0 rgba(255,255,255,.1);
+  }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.12) 0%, transparent 60%);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--violet2) 0%, var(--violet) 100%);
+    box-shadow: 0 0 30px rgba(139,92,246,.5), inset 0 1px 0 rgba(255,255,255,.15);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active { transform: scale(.97) translateY(0); box-shadow: 0 0 15px rgba(139,92,246,.3); }
+
+  .btn-lg { padding: .72rem 1.7rem; font-size: .95rem; border-radius: 9px; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 6rem 2rem 4rem;
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  /* Deep space gradient */
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -5%, rgba(109,40,217,.32) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 45% at 85% 85%, rgba(16,185,129,.14) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 10% 70%, rgba(6,182,212,.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Animated grid */
+  .hero-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(30,42,58,.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,42,58,.5) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(ellipse 75% 65% at 50% 0%, black 30%, transparent 100%);
+    animation: gridDrift 20s ease-in-out infinite;
+  }
+
+  @keyframes gridDrift {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Floating orbs */
+  .orb {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    filter: blur(80px); opacity: .35;
+    animation: orbFloat 12s ease-in-out infinite;
+  }
+  .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(109,40,217,.7), transparent); top: -100px; left: -150px; animation-delay: 0s; }
+  .orb-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(16,185,129,.6), transparent); bottom: 50px; right: -100px; animation-delay: -6s; }
+  .orb-3 { width: 250px; height: 250px; background: radial-gradient(circle, rgba(6,182,212,.5), transparent); top: 40%; left: 10%; animation-delay: -3s; }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    33% { transform: translateY(-30px) scale(1.05); }
+    66% { transform: translateY(15px) scale(.97); }
+  }
+
+  /* Particle stars */
+  .stars {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .star {
+    position: absolute; width: 2px; height: 2px; border-radius: 50%;
+    background: rgba(255,255,255,.6);
+    animation: starTwinkle var(--dur, 3s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes starTwinkle {
+    0%, 100% { opacity: .2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: .6rem;
+    padding: .38rem 1rem;
+    border: 1px solid rgba(139,92,246,.35);
+    border-radius: 999px;
+    background: rgba(109,40,217,.1);
+    backdrop-filter: blur(8px);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .73rem; color: var(--violet3);
+    margin-bottom: 1.8rem;
+    position: relative; z-index: 1;
+    box-shadow: 0 0 20px rgba(109,40,217,.15), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  .badge-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--mint2);
+    box-shadow: 0 0 8px var(--mint);
+    animation: pulseGlow 2s infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--mint); }
+    50% { opacity: .7; box-shadow: 0 0 16px var(--mint), 0 0 30px rgba(16,185,129,.3); }
+  }
+
+  .hero-headline {
+    font-size: clamp(2.5rem, 6.5vw, 4.8rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -.03em;
+    color: var(--white);
+    margin-bottom: 1.5rem;
+    position: relative; z-index: 1;
+    max-width: 860px;
+    text-shadow: 0 2px 40px rgba(0,0,0,.5);
+  }
+
+  .hero-headline .accent {
+    background: linear-gradient(135deg, var(--violet3) 0%, #C4B5FD 50%, var(--violet2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(139,92,246,.4));
+  }
+  .hero-headline .accent2 {
+    background: linear-gradient(135deg, var(--mint) 0%, var(--mint2) 50%, var(--cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(16,185,129,.4));
+  }
+
+  .hero-sub {
+    font-size: 1.12rem;
+    color: var(--slate);
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+    position: relative; z-index: 1;
+    font-weight: 400;
+    line-height: 1.65;
+  }
+
+  /* ── TERMINAL ── */
+  .terminal {
+    width: 100%; max-width: 660px;
+    background: rgba(15,21,32,.9);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0 auto 3rem;
+    text-align: left;
+    position: relative; z-index: 1;
+    box-shadow:
+      0 24px 80px rgba(0,0,0,.7),
+      0 0 0 1px rgba(139,92,246,.1),
+      inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(12px);
+  }
+
+  .terminal-bar {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .75rem 1.1rem;
+    background: rgba(25,32,46,.9);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; transition: filter .2s; }
+  .dot-r { background: #FF5F57; box-shadow: 0 0 6px rgba(255,95,87,.4); }
+  .dot-y { background: #FEBC2E; box-shadow: 0 0 6px rgba(254,188,46,.4); }
+  .dot-g { background: #28C840; box-shadow: 0 0 6px rgba(40,200,64,.4); }
+  .terminal:hover .dot-r { box-shadow: 0 0 10px rgba(255,95,87,.8); }
+  .terminal:hover .dot-y { box-shadow: 0 0 10px rgba(254,188,46,.8); }
+  .terminal:hover .dot-g { box-shadow: 0 0 10px rgba(40,200,64,.8); }
+
+  .terminal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .73rem; color: var(--slate);
+    margin-left: .5rem;
+  }
+
+  .terminal-body {
+    padding: 1.3rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .81rem; line-height: 1.85;
+  }
+
+  .t-prompt { color: var(--mint2); }
+  .t-cmd { color: var(--white); }
+  .t-flag { color: var(--violet3); }
+  .t-comment { color: #4B5E7A; font-style: italic; }
+  .t-out { color: var(--dimwhite); }
+  .t-success { color: var(--mint2); }
+  .t-error { color: var(--red); }
+  .t-warn { color: var(--yellow); }
+
+  .cursor {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--mint2);
+    vertical-align: middle;
+    border-radius: 1px;
+    box-shadow: 0 0 8px var(--mint);
+    animation: blink 1.1s step-end infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .hero-btns {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    position: relative; z-index: 1;
+  }
+
+  /* ── STATS ── */
+  .stats {
+    display: flex; justify-content: center; gap: 0;
+    position: relative; z-index: 1;
+    width: 100%; max-width: 900px;
+    margin-top: 5rem;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border2);
+    background: rgba(15,21,32,.8);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(139,92,246,.06);
+  }
+
+  .stat {
+    flex: 1; max-width: 240px;
+    padding: 2.2rem 1.5rem;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    position: relative; overflow: hidden;
+    transition: background .3s;
+  }
+  .stat::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(139,92,246,.04) 0%, transparent 100%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .stat:hover::before { opacity: 1; }
+  .stat:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem; font-weight: 600;
+    color: var(--white); display: block;
+    background: linear-gradient(135deg, #fff 0%, var(--dimwhite) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .stat-label { font-size: .79rem; color: var(--slate); margin-top: .3rem; letter-spacing: .02em; }
+
+  /* ── SECTIONS ── */
+  section { padding: 5.5rem 2rem; }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  .section-eye {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem; color: var(--violet3);
+    letter-spacing: .14em; text-transform: uppercase;
+    margin-bottom: .8rem;
+    display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .section-eye::before {
+    content: ''; width: 20px; height: 1px; background: var(--violet3);
+  }
+
+  .section-title {
+    font-size: clamp(1.7rem, 3.8vw, 2.6rem);
+    font-weight: 700; color: var(--white);
+    line-height: 1.2; letter-spacing: -.025em;
+    margin-bottom: 1rem;
+  }
+
+  .section-sub {
+    color: var(--slate); max-width: 540px;
+    font-size: .95rem; margin-bottom: 3rem; line-height: 1.65;
+  }
+
+  /* ── AGENT CARDS ── */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,.3);
+  }
+
+  .agent-card {
+    background: var(--bg2);
+    padding: 1.5rem;
+    transition: background .25s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .agent-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(139,92,246,.06) 0%, transparent 60%);
+    opacity: 0; transition: opacity .25s;
+  }
+  .agent-card:hover { background: var(--bg3); }
+  .agent-card:hover::before { opacity: 1; }
+  .agent-card:hover .agent-deploy { opacity: 1; transform: translateY(0); }
+  .agent-card:active { background: var(--bg3); }
+  .agent-card:active::before { opacity: 1; }
+
+  .agent-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .agent-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; border: 1px solid rgba(255,255,255,.06);
+    position: relative;
+  }
+
+  .agent-icon svg { width: 22px; height: 22px; }
+
+  .agent-stars {
+    display: flex; align-items: center; gap: .3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .73rem; color: var(--slate);
+  }
+  .agent-stars svg { color: var(--yellow); }
+
+  .agent-name {
+    font-weight: 600; font-size: .97rem; color: var(--white);
+    margin-bottom: .4rem;
+  }
+
+  .agent-desc { font-size: .82rem; color: var(--slate); line-height: 1.55; margin-bottom: 1rem; }
+
+  .agent-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem;
+    padding: .22rem .6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border2);
+    color: var(--slate);
+    background: rgba(30,42,58,.5);
+  }
+
+  .tag-violet { border-color: rgba(139,92,246,.35); color: var(--violet3); background: rgba(109,40,217,.08); }
+  .tag-mint   { border-color: rgba(16,185,129,.3); color: var(--mint2); background: rgba(16,185,129,.07); }
+  .tag-cyan   { border-color: rgba(6,182,212,.3); color: var(--cyan); background: rgba(6,182,212,.07); }
+
+  .agent-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .78rem; color: var(--slate);
+  }
+
+  .agent-author { display: flex; align-items: center; gap: .45rem; }
+
+  .author-avatar {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet) 0%, var(--cyan) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .62rem; color: #fff; font-weight: 700;
+  }
+
+  .agent-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .75rem; color: var(--mint2);
+    background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2);
+    padding: .15rem .55rem; border-radius: 999px;
+  }
+
+  .agent-deploy {
+    position: absolute; top: 1rem; right: 1rem;
+    opacity: 0; transform: translateY(-4px);
+    transition: opacity .2s, transform .2s;
+    background: linear-gradient(135deg, var(--violet) 0%, #5B21B6 100%);
+    color: #fff; border: none; border-radius: 6px;
+    padding: .3rem .75rem; font-size: .7rem;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(109,40,217,.4);
+    z-index: 2;
+  }
+  /* On touch/mobile: always show deploy button since there's no hover */
+  @media (hover: none) {
+    .agent-deploy {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 3.5rem; align-items: start;
+  }
+
+  .steps { display: flex; flex-direction: column; gap: 0; }
+
+  .step {
+    display: flex; gap: 1.3rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    transition: all .2s;
+  }
+  .step:last-child { border-bottom: none; }
+  .step:hover { padding-left: .5rem; }
+
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem; font-weight: 600;
+    color: var(--violet3);
+    width: 30px; flex-shrink: 0; padding-top: .15rem;
+    opacity: .6;
+  }
+
+  .step-body h4 { font-size: .95rem; color: var(--white); font-weight: 600; margin-bottom: .35rem; }
+  .step-body p { font-size: .83rem; color: var(--slate); line-height: 1.6; }
+
+  .code-panel {
+    background: rgba(15,21,32,.9);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.03);
+    position: sticky; top: 80px;
+  }
+
+  .code-tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    background: rgba(25,32,46,.8);
+  }
+
+  .code-tab {
+    padding: .65rem 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .73rem; color: var(--slate);
+    border-bottom: 2px solid transparent;
+    cursor: pointer; transition: all .2s;
+    -webkit-tap-highlight-color: rgba(139,92,246,.2);
+    user-select: none;
+    min-height: 44px;
+    display: flex; align-items: center;
+  }
+
+  .code-tab:hover { color: var(--dimwhite); }
+  .code-tab.active { color: var(--white); border-color: var(--violet2); background: rgba(109,40,217,.06); }
+
+  .code-body {
+    padding: 1.4rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem; line-height: 1.9;
+    overflow-x: auto;
+  }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .feature {
+    background: rgba(15,21,32,.8);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.6rem;
+    transition: border-color .25s, transform .25s, box-shadow .25s;
+    position: relative; overflow: hidden;
+  }
+  .feature::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,.4), transparent);
+    opacity: 0; transition: opacity .25s;
+  }
+  .feature:hover { border-color: rgba(139,92,246,.35); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(109,40,217,.15); }
+  .feature:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(25,32,46,.8); border-radius: 10px;
+    border: 1px solid var(--border2);
+    margin-bottom: 1rem;
+    transition: border-color .25s, background .25s;
+  }
+  .feature:hover .feature-icon { border-color: rgba(139,92,246,.3); background: rgba(109,40,217,.1); }
+  .feature-icon svg { width: 22px; height: 22px; }
+
+  .feature h4 { font-size: .95rem; color: var(--white); font-weight: 600; margin-bottom: .45rem; }
+  .feature p { font-size: .82rem; color: var(--slate); line-height: 1.65; }
+
+  /* ── CATEGORIES ── */
+  .categories {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cat-grid { display: flex; flex-wrap: wrap; gap: .7rem; }
+
+  .cat-chip {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .52rem 1.1rem;
+    background: rgba(15,21,32,.8);
+    border: 1px solid var(--border2);
+    border-radius: 9px;
+    font-size: .82rem; color: var(--dimwhite);
+    cursor: pointer; transition: all .2s;
+    position: relative; overflow: hidden;
+    -webkit-tap-highlight-color: rgba(139,92,246,.2);
+    user-select: none;
+    min-height: 44px;
+  }
+  .cat-chip:hover { border-color: var(--violet2); color: var(--white); background: rgba(109,40,217,.08); transform: translateY(-1px); }
+  .cat-chip:active { background: rgba(109,40,217,.15); transform: scale(.97); }
+  .cat-chip.active { border-color: var(--violet2); color: var(--violet3); background: rgba(109,40,217,.12); }
+
+  .cat-icon { font-size: 1rem; }
+
+  .cat-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem; color: var(--slate);
+    background: var(--bg3); padding: .1rem .45rem; border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── CTA SECTION ── */
+  .cta-section {
+    text-align: center;
+    position: relative; overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .cta-section::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 80% at 50% 50%, rgba(109,40,217,.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 80% 80%, rgba(16,185,129,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .cta-section .section-sub { margin: 0 auto 2.5rem; }
+
+  .cta-code {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85rem;
+    background: rgba(15,21,32,.9);
+    border: 1px solid var(--border2);
+    border-radius: 9px;
+    padding: .85rem 1.5rem;
+    color: var(--mint2);
+    margin-bottom: 2rem;
+    letter-spacing: .04em;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+    box-shadow: 0 0 20px rgba(16,185,129,.05);
+    max-width: 100%;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .cta-code:hover { border-color: var(--mint); box-shadow: 0 0 20px rgba(16,185,129,.2); }
+
+  .cta-btns {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  }
+
+  @media (max-width: 600px) {
+    .cta-code {
+      display: block;
+      font-size: .72rem;
+      padding: .75rem 1rem;
+      text-align: center;
+      letter-spacing: .01em;
+      word-break: break-all;
+      white-space: normal;
+    }
+    .cta-section .section-title { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+    .cta-btns {
+      flex-wrap: nowrap;
+      gap: .6rem;
+    }
+    .cta-btns .btn-lg {
+      flex: 1;
+      justify-content: center;
+      padding: .65rem .6rem;
+      font-size: .82rem;
+      min-width: 0;
+    }
+  }
+
+  /* ── TRUSTED BY / MARQUEE ── */
+  .trusted {
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    overflow: hidden;
+    position: relative;
+  }
+  .trusted::before, .trusted::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 120px; z-index: 2; pointer-events: none;
+  }
+  .trusted::before { left: 0; background: linear-gradient(90deg, var(--bg2), transparent); }
+  .trusted::after  { right: 0; background: linear-gradient(-90deg, var(--bg2), transparent); }
+
+  .trusted-label {
+    text-align: center;
+    font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--slate); margin-bottom: 1.6rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .marquee-track {
+    display: flex; gap: 0;
+    width: max-content;
+    animation: marquee 28s linear infinite;
+  }
+  .marquee-track:hover { animation-play-state: paused; }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .marquee-item {
+    display: flex; align-items: center; gap: .6rem;
+    padding: 0 2.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem; font-weight: 500;
+    color: var(--slate);
+    white-space: nowrap;
+    transition: color .2s;
+    border-right: 1px solid var(--border);
+  }
+  .marquee-item:hover { color: var(--dimwhite); }
+  .marquee-item svg { opacity: .5; transition: opacity .2s; flex-shrink: 0; }
+  .marquee-item:hover svg { opacity: .9; }
+
+  /* ── LIVE FEED ── */
+  .live-feed {
+    position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 50;
+    display: flex; flex-direction: column; gap: .5rem;
+    pointer-events: none;
+  }
+
+  .feed-item {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .55rem .9rem;
+    background: rgba(15,21,32,.92);
+    border: 1px solid var(--border2);
+    border-radius: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem; color: var(--dimwhite);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    max-width: 280px;
+    opacity: 0; transform: translateX(-20px);
+    transition: opacity .4s ease, transform .4s ease;
+    pointer-events: auto;
+  }
+  .feed-item.show { opacity: 1; transform: translateX(0); }
+  .feed-item.hide { opacity: 0; transform: translateX(-20px); }
+
+  .feed-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .feed-dot-green { background: var(--mint2); box-shadow: 0 0 6px var(--mint); }
+  .feed-dot-violet { background: var(--violet3); box-shadow: 0 0 6px var(--violet2); }
+  .feed-dot-yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(245,158,11,.6); }
+
+  @media (max-width: 640px) { .live-feed { display: none; } }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .testi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .testi-card {
+    background: rgba(15,21,32,.8);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: border-color .25s, transform .25s;
+  }
+  .testi-card::before {
+    content: '\201C';
+    position: absolute; top: .5rem; right: 1rem;
+    font-size: 5rem; line-height: 1;
+    color: var(--violet2); opacity: .07;
+    font-family: Georgia, serif;
+  }
+  .testi-card:hover { border-color: rgba(139,92,246,.3); transform: translateY(-2px); }
+
+  .testi-stars {
+    display: flex; gap: .25rem; margin-bottom: .9rem;
+  }
+  .testi-stars svg { color: var(--yellow); }
+
+  .testi-text {
+    font-size: .87rem; color: var(--dimwhite);
+    line-height: 1.65; margin-bottom: 1.2rem;
+  }
+
+  .testi-author {
+    display: flex; align-items: center; gap: .75rem;
+  }
+
+  .testi-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+  }
+
+  .testi-name { font-size: .85rem; font-weight: 600; color: var(--white); }
+  .testi-role { font-size: .75rem; color: var(--slate); margin-top: .1rem; }
+
+  /* ── PRICING ── */
+  .pricing {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 1.2rem;
+    max-width: 960px; margin: 0 auto;
+  }
+
+  .pricing-card {
+    background: rgba(8,12,18,.8);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 2rem;
+    position: relative; overflow: hidden;
+    transition: transform .25s, box-shadow .25s;
+  }
+  .pricing-card:hover { transform: translateY(-4px); box-shadow: 0 16px 50px rgba(0,0,0,.4); }
+  .pricing-card:active { transform: scale(.98); }
+
+  .pricing-card.popular {
+    border-color: rgba(139,92,246,.5);
+    background: rgba(109,40,217,.06);
+    box-shadow: 0 0 0 1px rgba(139,92,246,.2), 0 8px 40px rgba(109,40,217,.12);
+  }
+
+  .popular-badge {
+    position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--violet) 0%, #5B21B6 100%);
+    color: #fff; font-size: .68rem; font-weight: 700;
+    padding: .25rem 1rem; border-radius: 0 0 8px 8px;
+    letter-spacing: .08em; text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .pricing-plan { font-size: .8rem; color: var(--slate); text-transform: uppercase; letter-spacing: .1em; font-family: 'JetBrains Mono', monospace; margin-bottom: .6rem; }
+  .pricing-price {
+    display: flex; align-items: baseline; gap: .3rem;
+    margin-bottom: .3rem;
+  }
+  .pricing-amount {
+    font-size: 2.6rem; font-weight: 700; color: var(--white);
+    font-family: 'JetBrains Mono', monospace; letter-spacing: -.03em;
+  }
+  .pricing-period { font-size: .85rem; color: var(--slate); }
+  .pricing-desc { font-size: .82rem; color: var(--slate); margin-bottom: 1.4rem; line-height: 1.5; }
+
+  .pricing-features { list-style: none; display: flex; flex-direction: column; gap: .7rem; margin-bottom: 1.8rem; }
+  .pricing-features li {
+    display: flex; align-items: flex-start; gap: .65rem;
+    font-size: .83rem; color: var(--dimwhite); line-height: 1.4;
+  }
+  .pricing-features li svg { flex-shrink: 0; margin-top: 1px; }
+  .pricing-features li.dim { color: var(--slate); }
+  .pricing-features li.dim svg { opacity: .35; }
+
+  .btn-pricing {
+    width: 100%; justify-content: center;
+    padding: .75rem; font-size: .88rem;
+  }
+
+  /* ── BACK TO TOP ── */
+  .btt {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50;
+    width: 40px; height: 40px;
+    background: rgba(15,21,32,.9);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    opacity: 0; transform: translateY(10px);
+    transition: all .3s;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+  }
+  .btt.show { opacity: 1; transform: translateY(0); }
+  .btt:hover { border-color: var(--violet2); background: rgba(109,40,217,.15); }
+  .btt svg { color: var(--violet3); }
+
+  /* ── SCROLL PROGRESS BAR ── */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; z-index: 200;
+    height: 2px;
+    background: linear-gradient(90deg, var(--violet2), var(--mint2));
+    width: 0%;
+    transition: width .1s linear;
+    box-shadow: 0 0 8px var(--violet2);
+  }
+
+  /* ── ANNOUNCEMENT BANNER ── */
+  .announcement {
+    background: linear-gradient(90deg, rgba(109,40,217,.2) 0%, rgba(16,185,129,.15) 50%, rgba(109,40,217,.2) 100%);
+    border-bottom: 1px solid rgba(139,92,246,.25);
+    padding: .55rem 1rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .73rem; color: var(--dimwhite);
+    display: flex; align-items: center; justify-content: center; gap: .8rem;
+    position: relative; z-index: 99;
+  }
+  .announcement a { color: var(--violet3); border-bottom: 1px solid rgba(167,139,250,.4); transition: color .2s; }
+  .announcement a:hover { color: var(--white); }
+  .announcement-close {
+    position: absolute; right: 1rem;
+    background: none; border: none; cursor: pointer;
+    color: var(--slate); font-size: 1rem; line-height: 1;
+    transition: color .2s;
+  }
+  .announcement-close:hover { color: var(--white); }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .footer-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1.5rem;
+  }
+
+  .footer-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .9rem; font-weight: 600;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .footer-logo-icon { width: 20px; height: 20px; opacity: .7; }
+
+  .footer-links {
+    display: flex; gap: 1.5rem; list-style: none;
+    font-size: .82rem; color: var(--slate);
+  }
+  .footer-links a:hover { color: var(--dimwhite); }
+
+  .footer-copy {
+    font-size: .77rem; color: var(--slate);
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .footer-status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--mint2); box-shadow: 0 0 8px var(--mint);
+    animation: pulseGlow 2s infinite;
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity .65s ease, transform .65s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .how-grid { grid-template-columns: 1fr; }
+    .stats { flex-wrap: wrap; }
+    .stat { max-width: 50%; min-width: 140px; }
+  }
+  @media (max-width: 480px) {
+    .stat { max-width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; }
+    .cursor, .badge-dot, .orb, .logo-ring, .hero-grid, .star { animation: none; }
+  }
+
+  /* ── HAMBURGER ── */
+  .hamburger {
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+    gap: 5px; width: 44px; height: 44px;
+    background: transparent; border: none; cursor: pointer; padding: 4px; z-index: 110;
+    -webkit-tap-highlight-color: rgba(139,92,246,.2);
+  }
+  .hamburger span {
+    display: block; width: 20px; height: 2px;
+    background: var(--dimwhite); border-radius: 2px;
+    transition: all .3s; transform-origin: center;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── MOBILE MENU ── */
+  .mobile-menu {
+    display: none; flex-direction: column;
+    position: fixed; top: 64px; left: 0; right: 0; bottom: 0;
+    background: rgba(8,12,18,0.97); backdrop-filter: blur(20px);
+    padding: 2rem; gap: 1.2rem; z-index: 99;
+    transform: translateY(-10px); opacity: 0;
+    transition: all .3s; pointer-events: none;
+    border-top: 1px solid var(--border);
+  }
+  .mobile-menu.open { transform: translateY(0); opacity: 1; pointer-events: all; }
+  .mobile-menu a {
+    font-size: 1.1rem; font-weight: 500;
+    color: var(--dimwhite); padding: .5rem 0;
+    border-bottom: 1px solid var(--border); transition: color .2s;
+  }
+  .mobile-menu a:hover { color: var(--white); }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .mobile-menu { display: flex; }
+    .how-grid { grid-template-columns: 1fr; }
+    .stats { flex-wrap: wrap; }
+    .stat { max-width: 50%; min-width: 140px; }
+    .nav-cta { display: none; }
+  }
+  @media (max-width: 480px) {
+    .stat { max-width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(25,32,46,.95);
+    border: 1px solid var(--border2);
+    color: var(--dimwhite);
+    font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+    padding: .65rem 1.3rem; border-radius: 9px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 0 1px rgba(139,92,246,.1);
+    z-index: 200; opacity: 0; transition: all .3s;
+    white-space: nowrap; backdrop-filter: blur(12px);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── LOGIN MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(8,12,18,.75);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 2rem 2rem 1.8rem;
+    width: 100%; max-width: 400px;
+    position: relative;
+    box-shadow: 0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(139,92,246,.12);
+    transform: translateY(20px) scale(.97);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: rgba(30,42,58,.7); border: 1px solid var(--border2);
+    border-radius: 7px; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--slate); font-size: 1rem;
+    transition: all .2s; -webkit-tap-highlight-color: transparent;
+  }
+  .modal-close:hover { color: var(--white); border-color: var(--violet2); background: rgba(109,40,217,.15); }
+
+  .modal-logo {
+    display: flex; align-items: center; gap: .5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85rem; font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.35rem; font-weight: 700;
+    color: var(--white); margin-bottom: .3rem;
+    letter-spacing: -.02em;
+  }
+  .modal-sub {
+    font-size: .82rem; color: var(--slate);
+    margin-bottom: 1.6rem; line-height: 1.5;
+  }
+
+  .modal-tabs {
+    display: flex; gap: 0;
+    border: 1px solid var(--border2);
+    border-radius: 8px; overflow: hidden;
+    margin-bottom: 1.5rem;
+    background: rgba(15,21,32,.8);
+  }
+  .modal-tab {
+    flex: 1; padding: .6rem;
+    font-size: .83rem; font-weight: 600;
+    color: var(--slate); text-align: center;
+    cursor: pointer; transition: all .2s;
+    -webkit-tap-highlight-color: rgba(139,92,246,.2);
+    user-select: none;
+  }
+  .modal-tab.active {
+    background: linear-gradient(135deg, var(--violet), #5B21B6);
+    color: #fff;
+  }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-label {
+    display: block;
+    font-size: .76rem; font-weight: 600;
+    color: var(--dimwhite); margin-bottom: .4rem;
+    letter-spacing: .03em; text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .form-input {
+    width: 100%;
+    background: rgba(15,21,32,.9);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    color: var(--white);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    -webkit-appearance: none;
+  }
+  .form-input::placeholder { color: var(--slate); }
+  .form-input:focus {
+    border-color: var(--violet2);
+    box-shadow: 0 0 0 3px rgba(139,92,246,.15);
+  }
+  .form-input.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(244,63,94,.12); }
+
+  .form-error {
+    font-size: .74rem; color: var(--red);
+    margin-top: .35rem; display: none;
+  }
+  .form-error.show { display: block; }
+
+  .form-hint {
+    font-size: .74rem; color: var(--slate);
+    margin-top: .35rem;
+  }
+
+  .btn-form {
+    width: 100%; justify-content: center;
+    padding: .8rem; font-size: .92rem;
+    margin-top: 1.2rem; border-radius: 9px;
+    min-height: 48px;
+  }
+
+  .modal-switch {
+    text-align: center; font-size: .8rem;
+    color: var(--slate); margin-top: 1.1rem;
+  }
+  .modal-switch a {
+    color: var(--violet3); cursor: pointer;
+    border-bottom: 1px solid rgba(167,139,250,.3);
+    transition: color .2s;
+  }
+  .modal-switch a:hover { color: var(--white); }
+
+  /* ── USER AVATAR in nav (logged-in state) ── */
+  .nav-user {
+    display: none; align-items: center; gap: .6rem;
+    position: relative;
+  }
+  .nav-user.show { display: flex; }
+
+  .nav-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet), var(--mint));
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700; color: #fff;
+    cursor: pointer;
+    border: 2px solid rgba(139,92,246,.4);
+    box-shadow: 0 0 12px rgba(139,92,246,.3);
+    transition: box-shadow .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-avatar:hover { box-shadow: 0 0 20px rgba(139,92,246,.5); }
+
+  .nav-username {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem; color: var(--dimwhite);
+    max-width: 100px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .user-dropdown {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    min-width: 160px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5);
+    opacity: 0; pointer-events: none; transform: translateY(-6px);
+    transition: all .2s;
+    z-index: 200;
+  }
+  .user-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+  .dropdown-item {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .7rem 1rem;
+    font-size: .82rem; color: var(--dimwhite);
+    cursor: pointer; transition: background .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dropdown-item:hover { background: rgba(30,42,58,.8); color: var(--white); }
+  .dropdown-item.danger { color: var(--red); }
+  .dropdown-item.danger:hover { background: rgba(244,63,94,.08); }
+  .dropdown-sep { height: 1px; background: var(--border); margin: .3rem 0; }
+
+  .mobile-user-info {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .6rem 0 .9rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: .4rem;
+  }
+  .mobile-user-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet), var(--mint));
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700; color: #fff;
+    border: 2px solid rgba(139,92,246,.4);
+    flex-shrink: 0;
+  }
+  .mobile-user-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85rem; color: var(--white); font-weight: 600;
+  }
+  .mobile-user-role { font-size: .72rem; color: var(--slate); margin-top: .1rem; }
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ANNOUNCEMENT BANNER -->
+<div class="announcement" id="announcementBanner">
+  <span class="badge-dot" style="width:6px;height:6px;flex-shrink:0;"></span>
+  <span>🎉 Git Agents v2.4 is live — <a href="#features">Explore new multi-agent orchestration →</a></span>
+  <button class="announcement-close" onclick="document.getElementById('announcementBanner').style.display='none'" aria-label="Close">×</button>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer ring (animated) -->
+        <circle class="logo-ring" cx="12" cy="12" r="10" stroke="url(#logoGrad1)" stroke-width="1.2" stroke-dasharray="4 2" opacity=".5"/>
+        <!-- Git-style node connections -->
+        <circle cx="12" cy="6" r="2.2" fill="url(#logoGrad1)"/>
+        <circle cx="6.5" cy="15.5" r="2.2" fill="url(#logoGrad2)"/>
+        <circle cx="17.5" cy="15.5" r="2.2" fill="url(#logoGrad2)"/>
+        <!-- Connecting lines -->
+        <line x1="12" y1="8.2" x2="7.5" y2="13.4" stroke="url(#logoGrad1)" stroke-width="1.2" opacity=".7"/>
+        <line x1="12" y1="8.2" x2="16.5" y2="13.4" stroke="url(#logoGrad1)" stroke-width="1.2" opacity=".7"/>
+        <line x1="8.7" y1="15.5" x2="15.3" y2="15.5" stroke="url(#logoGrad2)" stroke-width="1.2" opacity=".5"/>
+        <!-- Center dot -->
+        <circle cx="12" cy="12" r="1.2" fill="white" opacity=".6"/>
+        <defs>
+          <linearGradient id="logoGrad1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#8B5CF6"/>
+            <stop offset="100%" stop-color="#A78BFA"/>
+          </linearGradient>
+          <linearGradient id="logoGrad2" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#10B981"/>
+            <stop offset="100%" stop-color="#34D399"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="logo-text">
+      <span class="logo-bracket">[</span><span class="logo-name">git</span><span class="logo-dash">-</span><span class="logo-name">agents</span><span class="logo-bracket">]</span>
+    </span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#explore">Explore</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#categories">Categories</a></li>
+    <li><a href="https://docs.git-agents.dev" target="_blank">Docs</a></li>
+  </ul>
+  <div class="nav-cta">
+    <div class="nav-user" id="navUser">
+      <div class="nav-avatar" id="navAvatar" onclick="toggleDropdown()"></div>
+      <span class="nav-username" id="navUsername"></span>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="dropdown-item" onclick="showToast('Dashboard coming soon...');closeDropdown()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </div>
+        <div class="dropdown-item" onclick="showToast('My Agents coming soon...');closeDropdown()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          My Agents
+        </div>
+        <div class="dropdown-sep"></div>
+        <div class="dropdown-item danger" onclick="logOut()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign out
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-outline" id="navSignInBtn" onclick="openModal('login')">Sign in</button>
+    <button class="btn btn-primary" onclick="document.getElementById('cta-section').scrollIntoView({behavior:'smooth'})">Deploy Agent</button>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <!-- logged-out state -->
+  <div id="mobileLoggedOut">
+    <a href="#explore" onclick="closeMobileMenu()">Explore</a>
+    <a href="#how" onclick="closeMobileMenu()">How it works</a>
+    <a href="#features" onclick="closeMobileMenu()">Features</a>
+    <a href="#categories" onclick="closeMobileMenu()">Categories</a>
+    <a href="https://docs.git-agents.dev" target="_blank" onclick="closeMobileMenu()">Docs</a>
+    <div style="display:flex;gap:.7rem;padding:.5rem 0">
+      <button class="btn btn-outline" style="flex:1" onclick="closeMobileMenu();openModal('login')">Sign in</button>
+      <button class="btn btn-primary" style="flex:1" onclick="closeMobileMenu();openModal('register')">Register</button>
+    </div>
+  </div>
+  <!-- logged-in state (hidden by default) -->
+  <div id="mobileLoggedIn" style="display:none">
+    <div class="mobile-user-info">
+      <div class="mobile-user-avatar" id="mobileAvatar"></div>
+      <div>
+        <div class="mobile-user-name" id="mobileUsername"></div>
+        <div class="mobile-user-role">Git Agents Builder</div>
+      </div>
+    </div>
+    <a href="#explore" onclick="closeMobileMenu()">Explore</a>
+    <a href="#how" onclick="closeMobileMenu()">How it works</a>
+    <a href="#features" onclick="closeMobileMenu()">Features</a>
+    <a href="#categories" onclick="closeMobileMenu()">Categories</a>
+    <a href="https://docs.git-agents.dev" target="_blank" onclick="closeMobileMenu()">Docs</a>
+    <a href="#" onclick="event.preventDefault();showToast('Dashboard coming soon...');closeMobileMenu()">Dashboard</a>
+    <a href="#" onclick="event.preventDefault();showToast('My Agents coming soon...');closeMobileMenu()">My Agents</a>
+    <div style="padding:.5rem 0">
+      <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red);border-color:rgba(244,63,94,.3)" onclick="closeMobileMenu();logOut()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign out
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN / REGISTER MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modalBox">
+    <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+
+    <div class="modal-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="6" r="2.2" fill="#8B5CF6"/>
+        <circle cx="6.5" cy="15.5" r="2.2" fill="#10B981"/>
+        <circle cx="17.5" cy="15.5" r="2.2" fill="#10B981"/>
+        <line x1="12" y1="8.2" x2="7.5" y2="13.4" stroke="#8B5CF6" stroke-width="1.2" opacity=".7"/>
+        <line x1="12" y1="8.2" x2="16.5" y2="13.4" stroke="#8B5CF6" stroke-width="1.2" opacity=".7"/>
+        <line x1="8.7" y1="15.5" x2="15.3" y2="15.5" stroke="#10B981" stroke-width="1.2" opacity=".5"/>
+      </svg>
+      <span style="color:var(--violet3)">[</span><span style="color:var(--white)">git</span><span style="color:var(--mint)">-</span><span style="color:var(--white)">agents</span><span style="color:var(--violet3)">]</span>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="modal-tabs">
+      <div class="modal-tab active" id="tabLogin" onclick="switchModalTab('login')">Sign In</div>
+      <div class="modal-tab" id="tabRegister" onclick="switchModalTab('register')">Register</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="formLogin">
+      <p class="modal-title">Welcome back</p>
+      <p class="modal-sub">Sign in to your Git Agents account.</p>
+      <div class="form-group">
+        <label class="form-label" for="loginUsername">Username</label>
+        <input class="form-input" id="loginUsername" type="text" placeholder="your_username" autocomplete="username" autocapitalize="none" spellcheck="false"/>
+        <div class="form-error" id="loginUsernameErr">Username is required.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="loginPassword">Password</label>
+        <input class="form-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+        <div class="form-error" id="loginPasswordErr">Password is required.</div>
+      </div>
+      <div class="form-error" id="loginGeneralErr" style="margin-top:.3rem"></div>
+      <button class="btn btn-primary btn-form" onclick="handleLogin()" id="loginBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Sign In
+      </button>
+      <div class="modal-switch">Don't have an account? <a onclick="switchModalTab('register')">Register here</a></div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="formRegister" style="display:none">
+      <p class="modal-title">Create account</p>
+      <p class="modal-sub">Join thousands of builders on Git Agents.</p>
+      <div class="form-group">
+        <label class="form-label" for="regUsername">Username</label>
+        <input class="form-input" id="regUsername" type="text" placeholder="your_username" autocomplete="username" autocapitalize="none" spellcheck="false"/>
+        <div class="form-hint">3–20 characters. Letters, numbers, _ and - only.</div>
+        <div class="form-error" id="regUsernameErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="regPassword">Password</label>
+        <input class="form-input" id="regPassword" type="password" placeholder="Min 6 characters" autocomplete="new-password"/>
+        <div class="form-error" id="regPasswordErr"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="regPasswordConfirm">Confirm Password</label>
+        <input class="form-input" id="regPasswordConfirm" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+        <div class="form-error" id="regPasswordConfirmErr"></div>
+      </div>
+      <div class="form-error" id="regGeneralErr" style="margin-top:.3rem"></div>
+      <button class="btn btn-primary btn-form" onclick="handleRegister()" id="registerBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Create Account
+      </button>
+      <div class="modal-switch">Already have an account? <a onclick="switchModalTab('login')">Sign in</a></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="hero-grid"></div>
+  <div class="stars" id="stars"></div>
+
+  <div class="badge">
+    <span class="badge-dot"></span>
+    v2.4.0 — On-chain agent registry live
+  </div>
+
+  <h1 class="hero-headline">
+    Deploy <span class="accent">autonomous</span> AI agents.<br>
+    Ship faster with <span class="accent2">Git Agents</span>.
+  </h1>
+  <p class="hero-sub">
+    A decentralized marketplace to discover, fork, and deploy intelligent agents that run your workflows — autonomously, on-chain.
+  </p>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="terminal-title">~/projects/my-app — zsh</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">❯</span> <span class="t-cmd">git-agents init</span> <span class="t-flag">--network mainnet</span></div>
+      <div><span class="t-success">✔</span> <span class="t-out">Workspace initialized. Registry: <span class="t-flag">0x4a2...f8c</span></span></div>
+      <br>
+      <div><span class="t-prompt">❯</span> <span class="t-cmd">git-agents deploy</span> <span class="t-flag">code-reviewer</span> <span class="t-flag">--model gpt-4o --trigger pr</span></div>
+      <div><span class="t-comment"># Compiling agent bytecode...</span></div>
+      <div><span class="t-success">✔</span> <span class="t-out">Agent deployed → <span class="t-flag">agent/code-reviewer@1.0.0</span></span></div>
+      <div><span class="t-success">✔</span> <span class="t-out">Listening on PR events. Cost: <span class="t-warn">0.002 GIT</span>/run</span></div>
+      <br>
+      <div><span class="t-prompt">❯</span> <span class="cursor"></span></div>
+    </div>
+  </div>
+
+  <div class="hero-btns">
+    <button class="btn btn-primary btn-lg" onclick="document.getElementById('cta-section').scrollIntoView({behavior:'smooth'})">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Start Deploying
+    </button>
+    <button class="btn btn-outline btn-lg" onclick="document.getElementById('explore').scrollIntoView({behavior:'smooth'})">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      Explore Agents
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-num">12,400+</span>
+      <div class="stat-label">Agents deployed</div>
+    </div>
+    <div class="stat">
+      <span class="stat-num">3,800+</span>
+      <div class="stat-label">Active builders</div>
+    </div>
+    <div class="stat">
+      <span class="stat-num">$2.1M+</span>
+      <div class="stat-label">Agent earnings</div>
+    </div>
+    <div class="stat">
+      <span class="stat-num">99.9%</span>
+      <div class="stat-label">Uptime SLA</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUSTED BY -->
+<div class="trusted">
+  <div class="trusted-label">Trusted by engineers at</div>
+  <div class="marquee-track" id="marqueeTrack">
+    <!-- set 1 -->
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77A5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      GitHub
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Vercel
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      Stripe
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Notion
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Linear
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Cloudflare
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Datadog
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      HashiCorp
+    </div>
+    <!-- set 2 (duplicate for seamless loop) -->
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77A5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      GitHub
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Vercel
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      Stripe
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Notion
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Linear
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Cloudflare
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Datadog
+    </div>
+    <div class="marquee-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      HashiCorp
+    </div>
+  </div>
+</div>
+
+<!-- EXPLORE AGENTS -->
+<section id="explore">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eye">// marketplace</div>
+      <h2 class="section-title">Trending agents</h2>
+      <p class="section-sub">Fork battle-tested agents from the community and deploy in seconds.</p>
+    </div>
+
+    <div class="agents-grid reveal">
+
+      <!-- Card 1: Code Review -->
+      <div class="agent-card">
+        <button class="agent-deploy">$ deploy</button>
+        <div class="agent-top">
+          <div class="agent-icon" style="background:rgba(139,92,246,.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8">
+              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              <line x1="12" y1="3" x2="12" y2="21" stroke-opacity=".4"/>
+            </svg>
+          </div>
+          <div class="agent-stars">
+            <svg width="11" height="11" fill="#F59E0B" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            2.3k
+          </div>
+        </div>
+        <div class="agent-name">CodeReviewer Pro</div>
+        <div class="agent-desc">Automated pull request reviews with semantic analysis, security scanning, and style enforcement across 20+ languages.</div>
+        <div class="agent-tags">
+          <span class="tag tag-violet">TypeScript</span>
+          <span class="tag tag-mint">Security</span>
+          <span class="tag">CI/CD</span>
+        </div>
+        <div class="agent-footer">
+          <div class="agent-author">
+            <div class="author-avatar">AK</div>
+            alikhan.dev
+          </div>
+          <div class="agent-price">0.005 GIT/run</div>
+        </div>
+      </div>
+
+      <!-- Card 2: Data -->
+      <div class="agent-card">
+        <button class="agent-deploy">$ deploy</button>
+        <div class="agent-top">
+          <div class="agent-icon" style="background:rgba(16,185,129,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+              <path d="M6 7h4M6 11h4M14 7h4M14 11h2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="agent-stars">
+            <svg width="11" height="11" fill="#F59E0B" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            1.8k
+          </div>
+        </div>
+        <div class="agent-name">DataPipeline Agent</div>
+        <div class="agent-desc">Ingests raw data from APIs, databases, and files — cleans, transforms, and loads into your data warehouse autonomously.</div>
+        <div class="agent-tags">
+          <span class="tag tag-mint">Python</span>
+          <span class="tag">ETL</span>
+          <span class="tag">Analytics</span>
+        </div>
+        <div class="agent-footer">
+          <div class="agent-author">
+            <div class="author-avatar" style="background:linear-gradient(135deg,#10B981,#06B6D4)">SM</div>
+            synthmark
+          </div>
+          <div class="agent-price">0.012 GIT/run</div>
+        </div>
+      </div>
+
+      <!-- Card 3: Security -->
+      <div class="agent-card">
+        <button class="agent-deploy">$ deploy</button>
+        <div class="agent-top">
+          <div class="agent-icon" style="background:rgba(244,63,94,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.8">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4" stroke="#F43F5E" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="agent-stars">
+            <svg width="11" height="11" fill="#F59E0B" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            4.1k
+          </div>
+        </div>
+        <div class="agent-name">SecureAudit</div>
+        <div class="agent-desc">Deep smart contract and application security auditing. Finds vulnerabilities, suggests patches, and generates audit reports.</div>
+        <div class="agent-tags">
+          <span class="tag tag-violet">Solidity</span>
+          <span class="tag tag-mint">Rust</span>
+          <span class="tag">Audit</span>
+        </div>
+        <div class="agent-footer">
+          <div class="agent-author">
+            <div class="author-avatar" style="background:linear-gradient(135deg,#F43F5E,#F59E0B)">QL</div>
+            quantlabs
+          </div>
+          <div class="agent-price">0.03 GIT/run</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Docs -->
+      <div class="agent-card">
+        <button class="agent-deploy">$ deploy</button>
+        <div class="agent-top">
+          <div class="agent-icon" style="background:rgba(245,158,11,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div class="agent-stars">
+            <svg width="11" height="11" fill="#F59E0B" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            987
+          </div>
+        </div>
+        <div class="agent-name">DocGen Agent</div>
+        <div class="agent-desc">Reads your codebase and auto-generates comprehensive documentation, README files, and API references in Markdown/HTML.</div>
+        <div class="agent-tags">
+          <span class="tag">Docs</span>
+          <span class="tag tag-violet">LLM</span>
+          <span class="tag">Markdown</span>
+        </div>
+        <div class="agent-footer">
+          <div class="agent-author">
+            <div class="author-avatar" style="background:linear-gradient(135deg,#F59E0B,#F43F5E)">PP</div>
+            piper_ai
+          </div>
+          <div class="agent-price">0.002 GIT/run</div>
+        </div>
+      </div>
+
+      <!-- Card 5: Deps -->
+      <div class="agent-card">
+        <button class="agent-deploy">$ deploy</button>
+        <div class="agent-top">
+          <div class="agent-icon" style="background:rgba(6,182,212,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.8">
+              <polyline points="17 1 21 5 17 9"/>
+              <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+              <polyline points="7 23 3 19 7 15"/>
+              <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+          </div>
+          <div class="agent-stars">
+            <svg width="11" height="11" fill="#F59E0B" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            1.2k
+          </div>
+        </div>
+        <div class="agent-name">DepsUpdater</div>
+        <div class="agent-desc">Monitors your dependencies for updates and CVEs. Auto-creates PRs with tested upgrades, changelogs, and migration notes.</div>
+        <div class="agent-tags">
+          <span class="tag tag-mint">npm</span>
+          <span class="tag">pip</span>
+          <span class="tag">cargo</span>
+        </div>
+        <div class="agent-footer">
+          <div class="agent-author">
+            <div class="author-avatar" style="background:linear-gradient(135deg,#06B6D4,#10B981)">RX</div>
+            reflex_io
+          </div>
+          <div class="agent-price">free</div>
+        </div>
+      </div>
+
+      <!-- Card 6: Testing -->
+      <div class="agent-card">
+        <button class="agent-deploy">$ deploy</button>
+        <div class="agent-top">
+          <div class="agent-icon" style="background:rgba(139,92,246,.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8">
+              <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v11m0 0H5a2 2 0 0 1-2-2V9m6 5h10a2 2 0 0 0 2-2V9m0 0H3"/>
+              <path d="M9 14v7M9 21h6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="agent-stars">
+            <svg width="11" height="11" fill="#F59E0B" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            3.6k
+          </div>
+        </div>
+        <div class="agent-name">TestForge</div>
+        <div class="agent-desc">Generates unit, integration, and e2e test suites by understanding your codebase intent. Reaches 80%+ coverage instantly.</div>
+        <div class="agent-tags">
+          <span class="tag tag-violet">Jest</span>
+          <span class="tag">Pytest</span>
+          <span class="tag tag-mint">Playwright</span>
+        </div>
+        <div class="agent-footer">
+          <div class="agent-author">
+            <div class="author-avatar">NV</div>
+            nova_labs
+          </div>
+          <div class="agent-price">0.008 GIT/run</div>
+        </div>
+      </div>
+
+    </div><!-- /agents-grid -->
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section id="categories" class="categories">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eye">// browse by category</div>
+      <h2 class="section-title" style="margin-bottom:1.5rem;">Find your agent</h2>
+    </div>
+    <div class="cat-grid reveal">
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Code Review <span class="cat-count">348</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Security <span class="cat-count">214</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Data & Analytics <span class="cat-count">189</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documentation <span class="cat-count">127</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        DevOps & CI <span class="cat-count">302</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Testing <span class="cat-count">265</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Dependency Mgmt <span class="cat-count">88</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Customer Support <span class="cat-count">156</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Slack & Comms <span class="cat-count">94</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Web Scraping <span class="cat-count">201</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        DeFi & Trading <span class="cat-count">143</span>
+      </div>
+      <div class="cat-chip">
+        <svg class="cat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17 12h-2.5a1 1 0 0 0-1 1v4h-1v3h5v-3h-1v-4H17"/><path d="M6 14l3-4h2"/><path d="M9 20l-3-2v-4"/></svg>
+        Design & UI <span class="cat-count">67</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eye">// how it works</div>
+      <h2 class="section-title">From zero to autonomous in minutes</h2>
+      <p class="section-sub">Git Agents abstracts away the infrastructure so you can focus on what agents actually do.</p>
+    </div>
+    <div class="how-grid reveal">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h4>Discover or create an agent</h4>
+            <p>Browse the marketplace or scaffold a custom agent using our CLI. Every agent is open-source and forkable.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h4>Configure triggers & model</h4>
+            <p>Set webhook triggers (GitHub PRs, cron jobs, API calls), choose your LLM backend, and define budget limits.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h4>Deploy on-chain</h4>
+            <p>Your agent's logic and permissions are registered on-chain — immutable, auditable, and autonomously funded via GIT tokens.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <h4>Monitor & earn</h4>
+            <p>Track runs, costs, and output quality in the dashboard. Publish your agent to earn GIT every time it's used.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-tabs">
+          <div class="code-tab active" onclick="switchTab(this,'panel-ts')">agent.config.ts</div>
+          <div class="code-tab" onclick="switchTab(this,'panel-yml')">deploy.yml</div>
+        </div>
+        <div class="code-body" id="panel-ts">
+          <span style="color:#4B5E7A">// Git Agents config</span><br>
+          <span style="color:var(--violet3)">import</span> <span style="color:var(--white)">{ defineAgent }</span> <span style="color:var(--violet3)">from</span> <span style="color:var(--mint2)">'@git-agents/sdk'</span><br><br>
+          <span style="color:var(--violet3)">export default</span> <span style="color:var(--white)">defineAgent({</span><br>
+          &nbsp;&nbsp;<span style="color:#F59E0B">name</span><span style="color:var(--white)">:</span> <span style="color:var(--mint2)">'my-code-reviewer'</span><span style="color:var(--white)">,</span><br>
+          &nbsp;&nbsp;<span style="color:#F59E0B">model</span><span style="color:var(--white)">:</span> <span style="color:var(--mint2)">'claude-sonnet-4-6'</span><span style="color:var(--white)">,</span><br>
+          &nbsp;&nbsp;<span style="color:#F59E0B">triggers</span><span style="color:var(--white)">: [{</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">type</span><span style="color:var(--white)">:</span> <span style="color:var(--mint2)">'github.pull_request'</span><span style="color:var(--white)">,</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">on</span><span style="color:var(--white)">: [</span><span style="color:var(--mint2)">'opened'</span><span style="color:var(--white)">,</span> <span style="color:var(--mint2)">'synchronize'</span><span style="color:var(--white)">],</span><br>
+          &nbsp;&nbsp;<span style="color:var(--white)">}],</span><br>
+          &nbsp;&nbsp;<span style="color:#F59E0B">budget</span><span style="color:var(--white)">: {</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">maxPerRun</span><span style="color:var(--white)">:</span> <span style="color:var(--red)">0.05</span><span style="color:var(--white)">,</span> <span style="color:#4B5E7A">// GIT</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">monthlyLimit</span><span style="color:var(--white)">:</span> <span style="color:var(--red)">10</span><span style="color:var(--white)">,</span><br>
+          &nbsp;&nbsp;<span style="color:var(--white)">},</span><br>
+          &nbsp;&nbsp;<span style="color:#F59E0B">instructions</span><span style="color:var(--white)">:</span> <span style="color:var(--mint2)">`</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--mint2)">Review the diff for bugs,</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--mint2)">security issues, and style.</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--mint2)">Post a structured comment.</span><br>
+          &nbsp;&nbsp;<span style="color:var(--mint2)">`</span><span style="color:var(--white)">,</span><br>
+          <span style="color:var(--white)">})</span>
+        </div>
+        <div class="code-body" id="panel-yml" style="display:none">
+          <span style="color:#4B5E7A"># deploy.yml — GitHub Actions workflow</span><br>
+          <span style="color:#F59E0B">name</span><span style="color:var(--white)">:</span> <span style="color:var(--mint2)">Deploy Code Reviewer Agent</span><br><br>
+          <span style="color:#F59E0B">on</span><span style="color:var(--white)">:</span><br>
+          &nbsp;&nbsp;<span style="color:#F59E0B">push</span><span style="color:var(--white)">:</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">branches</span><span style="color:var(--white)">: [</span><span style="color:var(--mint2)">'main'</span><span style="color:var(--white)">]</span><br><br>
+          <span style="color:#F59E0B">jobs</span><span style="color:var(--white)">:</span><br>
+          &nbsp;&nbsp;<span style="color:#F59E0B">deploy</span><span style="color:var(--white)">:</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">runs-on</span><span style="color:var(--white)">:</span> <span style="color:var(--mint2)">ubuntu-latest</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">steps</span><span style="color:var(--white)">:</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--white)">- uses:</span> <span style="color:var(--mint2)">actions/checkout@v4</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--white)">- name:</span> <span style="color:var(--mint2)">Deploy to Git Agents</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">run</span><span style="color:var(--white)">: |</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--mint2)">npx @git-agents/cli deploy</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--mint2)">--network mainnet</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--mint2)">--token ${{ secrets.GIT_AGENTS_TOKEN }}</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">env</span><span style="color:var(--white)">:</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">GIT_AGENTS_TOKEN</span><span style="color:var(--white)">:</span> <span style="color:var(--red)">${{ secrets.GIT_AGENTS_TOKEN }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="reveal" style="text-align:center;margin-bottom:3rem;">
+      <div class="section-eye" style="justify-content:center;">// platform features</div>
+      <h2 class="section-title">Built for serious builders</h2>
+    </div>
+    <div class="features-grid reveal">
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <h4>On-chain registry</h4>
+        <p>Every agent deployment is logged on-chain. Immutable provenance, verifiable permissions, transparent billing.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8">
+            <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+        </div>
+        <h4>Fork & remix</h4>
+        <p>Every agent is open-source. One-click fork any community agent, customize it, and publish your version.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.8">
+            <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+          </svg>
+        </div>
+        <h4>Any LLM backend</h4>
+        <p>Claude, GPT-4o, Gemini, Llama — swap models per agent without rewriting logic.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <h4>Event-driven triggers</h4>
+        <p>GitHub webhooks, Slack commands, cron schedules, REST APIs, or on-chain events — connect anything.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.8">
+            <path d="M12 2v10M12 2L8 6M12 2l4 4"/>
+            <path d="M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8"/>
+            <path d="M3 11h18"/>
+          </svg>
+        </div>
+        <h4>Budget controls</h4>
+        <p>Hard spending caps per run and per month. Agents never exceed your limits without explicit approval.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8">
+            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <h4>Earn while you sleep</h4>
+        <p>Publish agents to the marketplace and earn GIT tokens every time someone runs your agent.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+  <div class="container">
+    <div class="reveal" style="text-align:center;margin-bottom:3rem;">
+      <div class="section-eye" style="justify-content:center;">// what builders say</div>
+      <h2 class="section-title">Loved by developers</h2>
+    </div>
+    <div class="testi-grid reveal">
+
+      <div class="testi-card">
+        <div class="testi-stars">
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-text">We replaced 3 separate bots with one Git Agent. Code review latency dropped from 45 minutes to under 60 seconds on every PR. The on-chain audit trail was a huge win for our compliance team.</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#6D28D9,#8B5CF6)">SL</div>
+          <div>
+            <div class="testi-name">Sofia Larsson</div>
+            <div class="testi-role">Staff Engineer · Fintech startup, Stockholm</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-text">I published my DataPipeline agent on a Sunday. By Tuesday it had 200 runs and I'd earned enough GIT to cover my cloud bill for the month. The marketplace distribution is insane.</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#10B981,#06B6D4)">MO</div>
+          <div>
+            <div class="testi-name">Marcus Obi</div>
+            <div class="testi-role">Indie developer · Lagos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-text">Security auditing used to take us 2 weeks per release. SecureAudit runs on every commit now. We caught a reentrancy bug in staging that would've been catastrophic on mainnet. Worth every token.</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#F43F5E,#F59E0B)">AK</div>
+          <div>
+            <div class="testi-name">Ayesha Khan</div>
+            <div class="testi-role">Lead Blockchain Dev · DeFi protocol</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="reveal" style="text-align:center;margin-bottom:3rem;">
+      <div class="section-eye" style="justify-content:center;">// pricing</div>
+      <h2 class="section-title">Simple, usage-based pricing</h2>
+      <p class="section-sub" style="margin:0 auto;">Pay for what you run. No seats, no tiers of features hidden behind paywalls.</p>
+    </div>
+    <div class="pricing-grid reveal">
+
+      <!-- Free -->
+      <div class="pricing-card">
+        <div class="pricing-plan">Hobbyist</div>
+        <div class="pricing-price">
+          <span class="pricing-amount">$0</span>
+          <span class="pricing-period">/ month</span>
+        </div>
+        <p class="pricing-desc">Perfect for side projects and exploring the platform.</p>
+        <ul class="pricing-features">
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            5 active agents
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            500 runs / month
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Community marketplace access
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Basic analytics
+          </li>
+          <li class="dim">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B7FA8" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            No earnings from marketplace
+          </li>
+          <li class="dim">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B7FA8" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            No SLA guarantee
+          </li>
+        </ul>
+        <button class="btn btn-outline btn-pricing" onclick="showToast('Starting free plan...')">Get started free</button>
+      </div>
+
+      <!-- Pro (popular) -->
+      <div class="pricing-card popular">
+        <div class="popular-badge">Most Popular</div>
+        <div class="pricing-plan" style="color:var(--violet3);">Builder</div>
+        <div class="pricing-price">
+          <span class="pricing-amount" style="background:linear-gradient(135deg,var(--violet3),var(--mint2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">$29</span>
+          <span class="pricing-period">/ month</span>
+        </div>
+        <p class="pricing-desc">For professional builders shipping production agents.</p>
+        <ul class="pricing-features">
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Unlimited active agents
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            20,000 runs / month
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Publish &amp; earn GIT tokens
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Advanced analytics + logs
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Priority queue execution
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            99.9% SLA + email support
+          </li>
+        </ul>
+        <button class="btn btn-primary btn-pricing" onclick="showToast('Starting Builder plan...')">Start building →</button>
+      </div>
+
+      <!-- Team -->
+      <div class="pricing-card">
+        <div class="pricing-plan">Team</div>
+        <div class="pricing-price">
+          <span class="pricing-amount">$99</span>
+          <span class="pricing-period">/ month</span>
+        </div>
+        <p class="pricing-desc">For teams deploying agents at scale with shared governance.</p>
+        <ul class="pricing-features">
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Everything in Builder
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Unlimited runs
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Team workspaces + RBAC
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Private agent registry
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Audit logs + compliance export
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Dedicated Slack support
+          </li>
+        </ul>
+        <button class="btn btn-outline btn-pricing" onclick="showToast('Contacting sales...')">Contact sales</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta-section">
+  <div class="container reveal" style="text-align:center;position:relative;z-index:1;">
+    <div class="section-eye" style="justify-content:center;">// get started</div>
+    <h2 class="section-title" style="margin:0 auto .8rem;">Your first agent in under 5 minutes</h2>
+    <p class="section-sub" style="margin:0 auto 2rem;">No credit card. No config hell. Just deploy.</p>
+    <div class="cta-code">npm install -g @git-agents/cli &amp;&amp; git-agents init</div>
+    <br>
+    <div class="cta-btns">
+      <button class="btn btn-primary btn-lg" onclick="showToast('Welcome! Setting up your workspace...')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Get started free
+      </button>
+      <button class="btn btn-outline btn-lg" onclick="window.open('https://docs.git-agents.dev','_blank')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Read the docs
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE ACTIVITY FEED -->
+<div class="live-feed" id="liveFeed"></div>
+
+<!-- BACK TO TOP -->
+<button class="btt" id="bttBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <svg class="footer-logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="6" r="2.2" fill="#8B5CF6"/>
+          <circle cx="6.5" cy="15.5" r="2.2" fill="#10B981"/>
+          <circle cx="17.5" cy="15.5" r="2.2" fill="#10B981"/>
+          <line x1="12" y1="8.2" x2="7.5" y2="13.4" stroke="#8B5CF6" stroke-width="1.2" opacity=".7"/>
+          <line x1="12" y1="8.2" x2="16.5" y2="13.4" stroke="#8B5CF6" stroke-width="1.2" opacity=".7"/>
+          <line x1="8.7" y1="15.5" x2="15.3" y2="15.5" stroke="#10B981" stroke-width="1.2" opacity=".5"/>
+        </svg>
+        <span><span style="color:var(--violet3)">[</span><span style="color:var(--white)">git</span><span style="color:var(--mint)">-</span><span style="color:var(--white)">agents</span><span style="color:var(--violet3)">]</span></span>
+      </div>
+      <div style="font-size:.74rem;color:var(--slate);margin-top:.4rem;">© 2026 Git Agents. All rights reserved.</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="https://docs.git-agents.dev" target="_blank">Docs</a></li>
+      <li><a href="https://github.com/git-agents" target="_blank">GitHub</a></li>
+      <li><a href="https://discord.gg/git-agents" target="_blank">Discord</a></li>
+      <li><a href="#" onclick="event.preventDefault()">Blog</a></li>
+      <li><a href="#" onclick="event.preventDefault()">Status</a></li>
+    </ul>
+    <div class="footer-copy">
+      <span class="footer-status-dot"></span> All systems operational
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── Generate stars ──
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+    s.style.setProperty('--delay', (-Math.random() * 5) + 's');
+    s.style.opacity = Math.random() * 0.5;
+    if (Math.random() > 0.8) { s.style.width = '3px'; s.style.height = '3px'; }
+    starsEl.appendChild(s);
+  }
+
+  // ── Scroll reveal ──
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => io.observe(el));
+
+  // ── Code tab switcher ──
+  function switchTab(clickedTab, panelId) {
+    const panel = clickedTab.closest('.code-panel');
+    panel.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    panel.querySelectorAll('.code-body').forEach(p => p.style.display = 'none');
+    clickedTab.classList.add('active');
+    document.getElementById(panelId).style.display = 'block';
+  }
+  // Make code-tabs touch-friendly via event delegation
+  document.querySelectorAll('.code-tab').forEach(tab => {
+    tab.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      tab.click();
+    });
+  });
+
+  // ── Mobile nav ──
+  function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const ham = document.getElementById('hamburger');
+    const open = menu.classList.toggle('open');
+    ham.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('mobileMenu');
+    const ham = document.getElementById('hamburger');
+    if (menu.classList.contains('open') && !menu.contains(e.target) && !ham.contains(e.target)) closeMobileMenu();
+  });
+
+  // ── Agent deploy button ──
+  document.querySelectorAll('.agent-card').forEach(card => {
+    const btn = card.querySelector('.agent-deploy');
+
+    function deployAgent(e) {
+      e.stopPropagation();
+      const agentName = card.querySelector('.agent-name').textContent;
+      btn.textContent = '✓ Queued';
+      btn.style.background = 'linear-gradient(135deg,#10B981,#059669)';
+      showToast('Deploying ' + agentName + '...');
+      setTimeout(() => { btn.textContent = '$ deploy'; btn.style.background = ''; }, 2000);
+    }
+
+    btn.addEventListener('click', deployAgent);
+    btn.addEventListener('touchend', (e) => { e.preventDefault(); deployAgent(e); });
+
+    // On mobile (no hover), tapping card body triggers deploy button reveal + feedback
+    card.addEventListener('touchstart', () => {
+      btn.style.opacity = '1';
+      btn.style.transform = 'translateY(0)';
+    }, { passive: true });
+  });
+
+  // ── Category chip filter ──
+  document.querySelectorAll('.cat-chip').forEach(chip => {
+    function activateChip() {
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const text = chip.cloneNode(true);
+      text.querySelector('.cat-count')?.remove();
+      showToast('Filtering: ' + text.textContent.trim());
+    }
+    chip.addEventListener('click', activateChip);
+  });
+
+  // ── Toast ──
+  function showToast(msg) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2800);
+  }
+
+  // ── CTA install command: click/tap to copy ──
+  const ctaCode = document.querySelector('.cta-code');
+  if (ctaCode) {
+    ctaCode.title = 'Tap to copy';
+    function copyCommand() {
+      const cmd = 'npm install -g @git-agents/cli && git-agents init';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(() => {
+          showToast('✓ Copied to clipboard!');
+        }).catch(() => fallbackCopy(cmd));
+      } else {
+        fallbackCopy(cmd);
+      }
+    }
+    function fallbackCopy(text) {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed'; el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.focus(); el.select();
+      try { document.execCommand('copy'); showToast('✓ Copied to clipboard!'); }
+      catch { showToast('Copy: ' + text); }
+      document.body.removeChild(el);
+    }
+    ctaCode.addEventListener('click', copyCommand);
+    ctaCode.addEventListener('touchend', (e) => { e.preventDefault(); copyCommand(); });
+  }
+
+  // ── Smooth scroll ──
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id === '#') { e.preventDefault(); return; }
+      const target = document.querySelector(id);
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); closeMobileMenu(); }
+    });
+  });
+
+  // ── Scroll progress bar ──
+  const progressBar = document.getElementById('progressBar');
+  const bttBtn = document.getElementById('bttBtn');
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+
+    // nav effect
+    nav.style.background = scrollTop > 40 ? 'rgba(8,12,18,0.95)' : 'rgba(8,12,18,0.8)';
+
+    // back to top
+    if (scrollTop > 400) bttBtn.classList.add('show');
+    else bttBtn.classList.remove('show');
+  });
+
+  // ── Animated counters ──
+  const counters = document.querySelectorAll('.stat-num');
+  const counterIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const raw = el.textContent;
+      const prefix = raw.match(/^[^0-9]*/)?.[0] || '';
+      const suffix = raw.match(/[^0-9.]+$/)?.[0] || '';
+      const num = parseFloat(raw.replace(/[^0-9.]/g, ''));
+      if (isNaN(num)) return;
+      let start = 0; const dur = 1800; const step = 16;
+      const inc = num / (dur / step);
+      const timer = setInterval(() => {
+        start += inc;
+        if (start >= num) { start = num; clearInterval(timer); }
+        const disp = num % 1 === 0 ? Math.floor(start).toLocaleString() : start.toFixed(1);
+        el.textContent = prefix + disp + suffix;
+      }, step);
+      counterIO.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  counters.forEach(c => counterIO.observe(c));
+
+  // ── Live activity feed ──
+  const feedEl = document.getElementById('liveFeed');
+  const feedEvents = [
+    { dot: 'green',  msg: 'CodeReviewer deployed by <b>jake_dev</b>' },
+    { dot: 'violet', msg: '<b>SecureAudit</b> found 2 issues in staging' },
+    { dot: 'yellow', msg: '<b>TestForge</b> generated 94 tests · 0.008 GIT' },
+    { dot: 'green',  msg: 'DataPipeline agent forked by <b>ananya_s</b>' },
+    { dot: 'violet', msg: '<b>DepsUpdater</b> opened PR #847 on react-app' },
+    { dot: 'green',  msg: '<b>DocGen</b> deployed by <b>mi_chen</b>' },
+    { dot: 'yellow', msg: '<b>CodeReviewer</b> reviewed 12 files · 0.005 GIT' },
+    { dot: 'violet', msg: 'New agent <b>SlackBot Pro</b> published to marketplace' },
+  ];
+  let feedIdx = 0;
+  function showFeedItem() {
+    // keep max 3 visible
+    if (feedEl.children.length >= 3) {
+      const oldest = feedEl.firstChild;
+      oldest.classList.add('hide');
+      setTimeout(() => oldest.remove(), 400);
+    }
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    item.innerHTML = `<span class="feed-dot feed-dot-${feedEvents[feedIdx].dot}"></span><span>${feedEvents[feedIdx].msg}</span>`;
+    feedEl.appendChild(item);
+    setTimeout(() => item.classList.add('show'), 10);
+    feedIdx = (feedIdx + 1) % feedEvents.length;
+  }
+  // Start after 4s, then every 4s
+  setTimeout(() => { showFeedItem(); setInterval(showFeedItem, 4000); }, 4000);
+
+  // ── Nav pricing link ──
+  // (pricing is in the page, add to nav dynamically)
+  document.querySelectorAll('.nav-links').forEach(ul => {
+    const li = document.createElement('li');
+    li.innerHTML = '<a href="#pricing">Pricing</a>';
+    ul.insertBefore(li, ul.children[ul.children.length - 1]);
+  });
+
+  // ════════════════════════════════════════════
+  // ── AUTH SYSTEM ──
+  // ════════════════════════════════════════════
+
+  // In-memory user store (demo — no real backend)
+  const users = {};
+  let currentUser = null;
+
+  // ── Modal open/close ──
+  function openModal(tab) {
+    switchModalTab(tab || 'login');
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      const firstInput = tab === 'register'
+        ? document.getElementById('regUsername')
+        : document.getElementById('loginUsername');
+      firstInput && firstInput.focus();
+    }, 300);
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    clearFormErrors();
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // ── Tab switch ──
+  function switchModalTab(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById('tabLogin').classList.toggle('active', isLogin);
+    document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+    document.getElementById('formLogin').style.display = isLogin ? '' : 'none';
+    document.getElementById('formRegister').style.display = isLogin ? 'none' : '';
+    clearFormErrors();
+  }
+
+  // ── Clear errors ──
+  function clearFormErrors() {
+    document.querySelectorAll('.form-error').forEach(el => { el.classList.remove('show'); el.textContent = ''; });
+    document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+  }
+
+  function showFieldError(inputId, errId, msg) {
+    const inp = document.getElementById(inputId);
+    const err = document.getElementById(errId);
+    if (inp) inp.classList.add('error');
+    if (err) { err.textContent = msg; err.classList.add('show'); }
+  }
+
+  // ── Validate username ──
+  function validateUsername(u) {
+    if (!u) return 'Username is required.';
+    if (u.length < 3) return 'Minimum 3 characters.';
+    if (u.length > 20) return 'Maximum 20 characters.';
+    if (!/^[a-zA-Z0-9_-]+$/.test(u)) return 'Only letters, numbers, _ and - allowed.';
+    return null;
+  }
+
+  // ── Handle Login ──
+  function handleLogin() {
+    clearFormErrors();
+    const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+    let valid = true;
+
+    if (!username) { showFieldError('loginUsername','loginUsernameErr','Username is required.'); valid = false; }
+    if (!password)  { showFieldError('loginPassword','loginPasswordErr','Password is required.'); valid = false; }
+    if (!valid) return;
+
+    if (!users[username]) {
+      showFieldError('loginUsername','loginUsernameErr','Account not found. Register first.');
+      return;
+    }
+    if (users[username].password !== password) {
+      showFieldError('loginPassword','loginPasswordErr','Incorrect password.');
+      return;
+    }
+
+    setLoggedIn(username);
+    closeModal();
+    showToast('✓ Welcome back, @' + username + '!');
+  }
+
+  // ── Handle Register ──
+  function handleRegister() {
+    clearFormErrors();
+    const username = document.getElementById('regUsername').value.trim().toLowerCase();
+    const password = document.getElementById('regPassword').value;
+    const confirm  = document.getElementById('regPasswordConfirm').value;
+    let valid = true;
+
+    const uErr = validateUsername(username);
+    if (uErr) { showFieldError('regUsername','regUsernameErr', uErr); valid = false; }
+    else if (users[username]) { showFieldError('regUsername','regUsernameErr','Username already taken.'); valid = false; }
+
+    if (!password) { showFieldError('regPassword','regPasswordErr','Password is required.'); valid = false; }
+    else if (password.length < 6) { showFieldError('regPassword','regPasswordErr','Minimum 6 characters.'); valid = false; }
+
+    if (!confirm) { showFieldError('regPasswordConfirm','regPasswordConfirmErr','Please confirm your password.'); valid = false; }
+    else if (password && confirm !== password) { showFieldError('regPasswordConfirm','regPasswordConfirmErr','Passwords do not match.'); valid = false; }
+
+    if (!valid) return;
+
+    users[username] = { password, createdAt: new Date().toISOString() };
+    setLoggedIn(username);
+    closeModal();
+    showToast('🎉 Account created! Welcome, @' + username + '!');
+  }
+
+  // ── Apply logged-in UI ──
+  function setLoggedIn(username) {
+    currentUser = username;
+    const initials = username.slice(0,2).toUpperCase();
+
+    document.getElementById('navAvatar').textContent = initials;
+    document.getElementById('navUsername').textContent = '@' + username;
+    document.getElementById('navUser').classList.add('show');
+    document.getElementById('navSignInBtn').style.display = 'none';
+
+    document.getElementById('mobileAvatar').textContent = initials;
+    document.getElementById('mobileUsername').textContent = '@' + username;
+    document.getElementById('mobileLoggedOut').style.display = 'none';
+    document.getElementById('mobileLoggedIn').style.display = '';
+  }
+
+  // ── Log out ──
+  function logOut() {
+    currentUser = null;
+    document.getElementById('navUser').classList.remove('show');
+    document.getElementById('navSignInBtn').style.display = '';
+    document.getElementById('mobileLoggedOut').style.display = '';
+    document.getElementById('mobileLoggedIn').style.display = 'none';
+    closeDropdown();
+    showToast('Signed out. See you next time!');
+  }
+
+  // ── User dropdown ──
+  function toggleDropdown() {
+    document.getElementById('userDropdown').classList.toggle('open');
+  }
+  function closeDropdown() {
+    document.getElementById('userDropdown').classList.remove('open');
+  }
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('userDropdown');
+    const av = document.getElementById('navAvatar');
+    if (dd && !dd.contains(e.target) && e.target !== av) closeDropdown();
+  });
+
+  // ── Enter key submits forms ──
+  ['loginUsername','loginPassword'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+  });
+  ['regUsername','regPassword','regPasswordConfirm'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') handleRegister(); });
+  });
+
+  // ── "Get started free" CTA → open register modal ──
+  document.querySelectorAll('.cta-btns .btn-primary').forEach(btn => {
+    btn.onclick = () => openModal('register');
+  });
+
+</script>
+</body>
+</html>
